@@ -1,0 +1,45 @@
+{
+  "name": "awegust",
+  "version": "2.1.0",
+  "main": "index.js",
+  "author": "John Jaime Oyales",
+  "scripts": {
+    "start": "nodemon index.js",
+    "cluster": "nodemon cluster.js",
+    "obfuscate-server": "javascript-obfuscator core/server.source.js --output core/server.js",
+    "obfuscate-model": "javascript-obfuscator core/BaseModelV2/BaseModel.source.js --output core/BaseModelV2/index.js",
+    "obfuscate-model-helper": "javascript-obfuscator core/BaseModelV2/utils/BaseModelUtils.source.js --output core/BaseModelV2/utils/index.js",
+    "obfuscate-core": "npm run obfuscate-server && npm run obfuscate-model && npm run obfuscate-model-helper",
+    "migrate": "node core/migration"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@bull-board/express": "^3.8.1",
+    "@bull-board/fastify": "^3.8.1",
+    "@bull-board/hapi": "^3.8.1",
+    "@bull-board/koa": "^3.8.1",
+    "axios": "^0.24.0",
+    "bull": "^4.2.0",
+    "connect-busboy": "0.0.2",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.1.1",
+    "dotenv": "^8.2.0",
+    "express": "4.17.1",
+    "express-fileupload": "^1.1.9",
+    "moment": "^2.27.0",
+    "multer": "^1.4.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "nodemailer": "^6.4.17",
+    "nodemon": "2.0.3",
+    "oxen-queue": "^0.1.8",
+    "redis": "^4.0.1",
+    "revalidator": "^0.3.1",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0",
+    "xlsx": "^0.16.7"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^3.0.0"
+  }
+}
