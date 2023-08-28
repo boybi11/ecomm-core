@@ -13,6 +13,8 @@ class OrderHelperSocket {
         this.socket.emit("order-seen-update", { status, data })
     }
 
+    orderPalced = () => this.socket.emit("order-status", { status: "placed" })
+
     disconnect = () => this.socket.disconnect()
 }
 

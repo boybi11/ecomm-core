@@ -88,11 +88,11 @@ class OrderHelper {
     logPayment = async ({req, currentOrder, socket}) => {
         const newOrder = req.body
         
-        if ((newOrder.is_paid !== currentOrder.is_paid) || !currentOrder) {
+        if ((newOrder.order.is_paid !== currentOrder.is_paid) || !currentOrder) {
             await LogHelper.logOrderActivity({
                 order_id: req.body.ids ? req.body.ids : currentOrder.id,
                 user_id: req.authUser.id,
-                action: newOrder.is_paid === 1 ? 'paid' : 'unpaid'
+                action: newOrder.order.is_paid === 1 ? 'paid' : 'unpaid'
             })
             
             if (socket) {
@@ -103,8 +103,8 @@ class OrderHelper {
         }
     }
 
-    saveFees = async (orderId, data) => {
-        const orderFees = data.fees ? data.fees.map(fee => Object.assign({}, fee, {order_id: orderId})) : []
+    saveFees = async (orderId, fees) => {
+        const orderFees = fees ? fees.map(fee => ({ ...fee, order_id: orderId })) : []
 
         await new OrderFee().where({ order_id: { value: orderId} }).delete([])
         return await new OrderFee().create(orderFees)
@@ -144,17 +144,9 @@ class OrderHelper {
         return orderItems
     }
 
-    saveOrderAddress = async (data, orderId) => {
-        
+    saveOrderAddress = async ({ address }, orderId) => {
         await new OrderAddressModel().where({order_id: {value: orderId}}).delete([])
-        const delivery_address = data.delivery_address
-        const billing_address = data.billing_address ? data.billing_address : data.delivery_address
-        const addresses = [
-            {...delivery_address, type: "delivery", order_id: orderId },
-            { ...( billing_address.same === "delivery_address" ? delivery_address : billing_address ), type: "billing", order_id: orderId}
-        ]
-
-        return await new OrderAddressModel().create(addresses)
+        return await new OrderAddressModel().create({...address, type: "delivery", order_id: orderId })
     }
 
     log = async ({ order_id, user_id, action, message = '' }) => {

@@ -19,7 +19,6 @@ app.use('/admin/queues', queues.router);
 app.use('/assets', express.static(path.join(__dirname, "assets")))
 app.use('/uploads', express.static(path.join(__dirname, "uploads")))
 app.use('/api', apiRoutes)
-
 app.use('/static', express.static(path.join(__dirname, "build/static")))
 app.use('/*', express.static(path.join(__dirname, "build")))
 

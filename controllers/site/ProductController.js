@@ -14,12 +14,11 @@ class ProductController extends BaseController {
 
     get = async (req, response) => {
         const { query } = req
-        const filters   = query.filters ? JSON.parse(query.filters) : {}
+        const filters   = query.filters ? (query.filters instanceof String ? JSON.parse(query.filters) : query.filters) : {}
         let products    = new Product()
                             .select([ "category_id" ])
                             .forTable()
-                            .includeAppend([ "stock" ])
-                            .withJoin({ stock: false, discount: true })
+                            .withJoin({ stock: true, discount: true })
                             .with(['asset', "children:(?forTable)", "category" ])
                             
         if (!filters.search || (filters.search && query.selector)) {
@@ -95,7 +94,6 @@ class ProductController extends BaseController {
                 }
             }
             req.query.filters = JSON.stringify(filters)
-
             this.get(req, res)
         }
         else this.response(product, res)
@@ -112,11 +110,10 @@ class ProductController extends BaseController {
                                 'category:iconAsset',
                                 'brand:asset',
                                 'tags',
-                                'variants:options',
-                                'children:asset->assets'
+                                'children:(asset-uoms-?withJoin-?forTable)'
                             ])
-                            .includeAppend([ "stock", "assets" ])
-                            .withJoin({ stock: false, discount: true })
+                            .includeAppend([ "assets" ])
+                            .withJoin({ stock: true, discount: true })
             }
 
             result = await result.where({"slug": { value: req.params.slug }}).first()

@@ -1,6 +1,6 @@
 const GeneralHelper = require('../../../../helpers/GeneralHelper');
 
-module.exports = ({ order, currency }) => {
+module.exports = ({ data, currency }) => {
     const currencySymbol = currency ? currency.value : "PHP";
     return `
         <div class="pa-30">
@@ -10,7 +10,7 @@ module.exports = ({ order, currency }) => {
                         <strong>Payment</strong>
                     </td>
                     <td class="txt-right">
-                        ${ order.payment_method.replace(/-/g, ' ').toUpperCase() }
+                        ${ data.order.payment_method.replace(/-/g, ' ').toUpperCase() }
                     </td>
                 </tr>
                 <tr>
@@ -18,11 +18,11 @@ module.exports = ({ order, currency }) => {
                         <strong>Subtotal</strong>
                     </td>
                     <td class="txt-right">
-                    ${ currencySymbol }${ GeneralHelper.numberWithCommas(order.subtotal) }
+                    ${ currencySymbol }${ GeneralHelper.numberWithCommas(data.order.subtotal) }
                     </td>
                 </tr>
                 ${
-                    order.fees.map(fee => `
+                    data.fees.map(fee => `
                         <tr>
                             <td>
                                 <strong>${ fee.name }</strong>${ fee.type ? `(${ fee.type })` : ''}
@@ -38,7 +38,7 @@ module.exports = ({ order, currency }) => {
                         <strong>Discount</strong>
                     </td>
                     <td class="txt-red txt-right">
-                        ${ currencySymbol }${ GeneralHelper.numberWithCommas(order.discount_amount) }
+                        ${ currencySymbol }${ GeneralHelper.numberWithCommas(data.order.discount_amount) }
                     </td>
                 </tr>
                 <tr>
@@ -47,7 +47,7 @@ module.exports = ({ order, currency }) => {
                     </td>
                     <td class="txt-right">
                         <strong>
-                            ${ currencySymbol }${ GeneralHelper.numberWithCommas(order.total) }
+                            ${ currencySymbol }${ GeneralHelper.numberWithCommas(data.order.total) }
                         </strong>
                     </td>
                 </tr>

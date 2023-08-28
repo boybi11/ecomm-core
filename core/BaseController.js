@@ -14,7 +14,7 @@ class BaseController {
             if (result.error) this.sendError(`${ result.error.table ? result.error.table + ':' : '' }${ result.error.message }`, response)
             else {
                 await this.log(result)
-                if (response.xrtoken) {
+                if (response?.xrtoken) {
                     result.xrtoken = EncHelper.encrypt({ token: response.xrtoken })
                 }
                 if (send) response.send(result)

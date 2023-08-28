@@ -1,5 +1,4 @@
 const Page = require('../../models/Page')
-const moment = require('moment')
 
 const BaseController = require('../../core/BaseController')
 class PageController extends BaseController {
@@ -9,16 +8,16 @@ class PageController extends BaseController {
             const { slug } = req.params
 
             const page = await new Page()
-                                    .with("contents:(clientContents:(values:(control-asset)))")
+                                    .with("publishedContents:(clientContents:(values:(control-asset)))")
                                     .where({ dev_slug: { value: slug } })
-                                    .whereRaw(`publish_date <= '${moment().format()}'`)
+                                    .isPublished()
                                     .first()
                                     
             if (page && !page.error) {
                 let contents = {}
-                if (page.contents.length) {
+                if (page.publishedContents.length) {
 
-                    page.contents.forEach(content => {
+                    page.publishedContents.forEach(content => {
                         const key = content.name.toLowerCase().replace(/ /g, '_')
                         contents[key] = []
 
@@ -31,7 +30,7 @@ class PageController extends BaseController {
                                         const contentJSON = {}
                                         
                                         clientContent.values.forEach(clientControl => {
-                                            contentJSON[clientControl.control.field_name] = clientControl.type === "image" ? clientControl.asset : clientControl.value
+                                            contentJSON[clientControl.control.field_name] = clientControl.type === "image" ? clientControl.asset.path : clientControl.value
                                         })
                                         contents[key].push(contentJSON)
                                     })
@@ -39,7 +38,7 @@ class PageController extends BaseController {
                             else {
                                 const contentJSON = {}
                                 if (content.clientContents[0]) {
-                                    content.clientContents[0].values.forEach(clientControl => contentJSON[clientControl.control.field_name] = clientControl.type === "image" ? clientControl.asset : clientControl.value)
+                                    content.clientContents[0].values.forEach(clientControl => contentJSON[clientControl.control.field_name] = clientControl.type === "image" ? clientControl.asset.path : clientControl.value)
                                 }
                                 contents[key] = contentJSON
                             }
@@ -47,8 +46,8 @@ class PageController extends BaseController {
                     })
                 }
 
-                delete page.contents
-                this.response({ ...page, ...contents }, response)
+                delete page.publishedContents
+                this.response({ name: page.name , ...contents }, response)
             }
             else this.response(page, response)
         }

@@ -51,7 +51,6 @@ class AssetController extends BaseController {
 
     getFromGroup = async (req, response) => {
         const { ids } = req.query
-        console.log(ids)
         if (ids) {
             const result = await new Asset().whereIn({ id: ids }).get()
             this.response(result, response)

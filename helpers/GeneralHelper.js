@@ -52,12 +52,14 @@ class GeneralHelper {
                 })
                 .delete([])
 
-            const tagEntries = tags.map(t => ({
-                    ref_id: refId,
-                    ref_type: refType,
-                    name: t
-            }))
-            await new Tag().create(tagEntries)
+            const res = await new Tag().create(
+                tags.map(t => ({
+                        ref_id: refId,
+                        ref_type: refType,
+                        name: t
+                    })
+                )
+            )
         }
 
         return true

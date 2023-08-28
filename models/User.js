@@ -40,6 +40,8 @@ class User extends Base {
 
     addresses   = () => this.hasMany("CustomerAddress", "user_id", "id")
 
+    primaryAddress = () => this.hasOne("CustomerAddress", "id", "delivery_address")
+
     lastOrder   = () => this.hasOne("Order", "user_id", "id", { forTable: {}, orderBy: ["id", "desc"], where: { status: { value: "cart", operation: "!=" } } })
 
     roleAccess  = () => this.hasOne("AdminRole", "id", "role")

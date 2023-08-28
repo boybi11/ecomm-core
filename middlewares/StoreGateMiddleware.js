@@ -36,7 +36,7 @@ class StoreGateMiddleWare {
     validateClientToken = async (req, res, next) => {
         const clientToken = req.get("x-client-token")
         const authorized  = clientToken && clientToken === config.ClientToken
-
+        
         if (authorized) next()
         else res.status(403).send({ message: 'Access forbidden!' })
     }

@@ -6,10 +6,10 @@
   "scripts": {
     "start": "nodemon index.js",
     "cluster": "nodemon cluster.js",
-    "obfuscate-server": "javascript-obfuscator core/server.source.js --output core/server.js",
-    "obfuscate-model": "javascript-obfuscator core/BaseModelV2/BaseModel.source.js --output core/BaseModelV2/index.js",
-    "obfuscate-model-helper": "javascript-obfuscator core/BaseModelV2/utils/BaseModelUtils.source.js --output core/BaseModelV2/utils/index.js",
-    "obfuscate-core": "npm run obfuscate-server && npm run obfuscate-model && npm run obfuscate-model-helper",
+    "transform-server": "javascript-obfuscator core/server.source.js --output core/server.js",
+    "transform-model": "javascript-obfuscator core/BaseModelV2/BaseModel.source.js --output core/BaseModelV2/index.js",
+    "transform-model-helper": "javascript-obfuscator core/BaseModelV2/utils/BaseModelUtils.source.js --output core/BaseModelV2/utils/index.js",
+    "transform-core": "npm run transform-server && npm run transform-model && npm run transform-model-helper",
     "migrate": "node core/migration"
   },
   "license": "MIT",

@@ -12,7 +12,7 @@ class ProductMiddleware {
             }
             
             res.status(400).send({errors})
-            res.end()
+            return res.end()
         } else {
             const slug      = GeneralHelper.slugify(`${req.body.name}`)
             const duplicate = await ProductHelper.findDuplicate({ slug, id, sku: req.body.sku })
@@ -23,7 +23,7 @@ class ProductMiddleware {
                     const errors = {}
                     if (duplicate.find(d => d.sku === req.body.sku)) errors.sku = "SKU is already existing"
                     if (duplicate.find(d => d.slug === slug)) errors.name = "Product name is already existing"
-                    res.status(400).send({errors})
+                    return res.status(400).send({errors})
                 }
             }
             else {
@@ -31,6 +31,30 @@ class ProductMiddleware {
                 next()
             }
         }
+    }
+
+    async processBody (req, res, next) {
+        const product = { ...req.body }
+        delete product.children
+        delete product.variants
+        delete product.uoms
+        delete product.tags
+        product.with_variant = product.variants && Object.keys(product.variants).length ? 1 : 0
+
+        if (product.parent) {
+            product.name    = `${ req.body.baseProduct.name } ${ product.options.map(option => `(${ option.value })` ).join(' ')}`
+            product.options = product.options.map(option => `${ option.group }:${ option.value }` ).join('--')
+        }
+
+        const newBody = {
+                            product,
+                            variants: req.body.variants,
+                            uoms: req.body.uoms,
+                            tags: req.body.tags
+                        }
+
+        req.body = newBody
+        next()
     }
 }
 

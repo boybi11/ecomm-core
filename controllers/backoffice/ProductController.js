@@ -16,7 +16,7 @@ class ProductController extends BaseController {
         const filters   = query.filters ? JSON.parse(query.filters) : {}
         let products    = new Product()
                             .forTable()
-                            .withJoin()
+                            .withJoin({ discount: true })
                             .with(['asset', "children:(asset-uoms-?withJoin-?forTable)", "uoms"])
         
         if (!filters.search || (filters.search && query.selector)) {
@@ -34,10 +34,8 @@ class ProductController extends BaseController {
     }
     
     store = async (req, response) => {
-        await AssetHelper.upload(req.body.image)
-        const variants          = req.body.variants ? [...req.body.variants] : []
-        req.body.with_variant   = variants.length > 0 ? 1 : 0
-        const product           = await new Product().log(req.body, req.authUser.id).create(req.body)
+        await AssetHelper.upload(req.body.product.image)
+        const product = await new Product().log(req.body.product, req.authUser.id).create(req.body.product)
 
         await ProductHelper.saveRelationships(product.result.insertId, req.body)
         this.response(product, response)
@@ -46,7 +44,7 @@ class ProductController extends BaseController {
     edit = async (req, response) => {
         if (!req.params.id) response.status(400).send({ message: "Missing id request parameter" })
 
-        const relations =   [ 'tags', 'variants:options', 'children:asset', 'uoms', 'baseProduct:asset' ]
+        const relations =   [ 'tags', 'children:asset', 'uoms', 'baseProduct:asset' ]
         const product =     await new Product()
                                         .select([ "products.*" ])
                                         .withJoin()
@@ -59,25 +57,11 @@ class ProductController extends BaseController {
 
     update = async (req, response) => {
         await AssetHelper.upload(req.body.image)
-        const data          = { ...req.body }
-        
-        if (Object.keys(req.body).length > 1) {
-            if (data.parent) {
-                delete data.options
-                delete data.variants
-            }
-            else {
-                const variants      = req.body.variants ? [...req.body.variants] : []
-                data.with_variant   = variants.length > 0 ? 1 : 0
-    
-                if (!req.body.options) data.options = ""
-            }
-        }
-
-        const update = await new Product()
-                                    .log(data, req.authUser.id, req.params.id)
+        const update    = await new Product()
+                                    .tag(req.body.tags || [])
+                                    .log(req.body.product, req.authUser.id, req.params.id)
                                     .where({id: {value: req.params && req.params.id ? req.params.id : 0}})
-                                    .update(data)
+                                    .update(req.body.product)
 
         await ProductHelper.saveRelationships(req.params.id, req.body)
         this.response(update, response)

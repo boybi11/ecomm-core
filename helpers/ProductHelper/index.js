@@ -16,7 +16,7 @@ class ProductHelper {
     findDuplicate = async ({ slug, sku, id }) => {
         let duplicate = new Product()
                             .select([ "id", "slug", "sku" ])
-                            .whereRaw(`(sku = '${ sku}' OR slug = '${ slug }')`)
+                            .whereRaw(`(sku = '${ sku }' OR slug = '${ slug }')`)
 
         if (+id) duplicate = duplicate.where({ id: { value: id, operation: "!=" }})
         
@@ -46,15 +46,11 @@ class ProductHelper {
     }
 
     async saveRelationships (productId, requestBody) {
-        const tags      = requestBody.tags ? requestBody.tags : []
         const uoms      = requestBody.uoms
-        const children  = requestBody.children ? requestBody.children.map(child => { return {...child, ...{name: requestBody.name}}}) : []
-        const variants  = requestBody.variants ? [...requestBody.variants] : []
-
-        await this.saveVariants(productId, variants)
-        await GeneralHelper.saveTags("products", productId, tags)
+        const variants  = requestBody.variants ? Object.values(requestBody.variants) : {}
+        
         await this.saveUoMs(productId, uoms)
-        await this.saveChildren(productId, children)
+        await this.saveChildren({ productId, name: requestBody.product.name }, variants)
 
         if (requestBody.stock) {
             const restockData = {

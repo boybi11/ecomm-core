@@ -31,7 +31,6 @@ class OrderController extends BaseController {
     }
 
     store = async (req, response) => {
-        const items = req.body.items
         let data = {...req.body}
 
         if (data.user_id) {
@@ -39,15 +38,15 @@ class OrderController extends BaseController {
             if (!otherOrders) data.is_first = 1
         }
 
-        const create = await new Order().create({ ...data, status: "placed", source: "direct" })
+        const create = await new Order().create({ ...data.order, status: "placed", source: "direct" })
         if (create && !create.error) {
-            const result = create.result
-            const referencNumber = `${ moment().unix() }-${ parseInt(Math.random() * 9999) } - ${ result.insertId }`
+            const result            = create.result
+            const referencNumber    = +result.insertId + 100000
 
-            await new Order().where({id: {value: result.insertId }}).update({reference_number: referencNumber})
-            await OrderHelper.saveFees(result.insertId, data)
-
-            const orderItems = await OrderHelper.saveOrderItems(items, result.insertId, "placed")
+            await new Order().where({id: {value: result.insertId }}).update({ reference_number: referencNumber })
+            await OrderHelper.saveFees(result.insertId, data.fees)
+            const orderItems = await OrderHelper.saveOrderItems(req.body.items, result.insertId, "placed")
+            
             if (orderItems && !orderItems.error) {
                 const orderAddress = await OrderHelper.saveOrderAddress(data, result.insertId)
 
@@ -56,11 +55,11 @@ class OrderController extends BaseController {
                     this.socket.connect()
 
                     await OrderHelper.log({ ...logData, action: "placed" })
-                    if (data.is_paid) {
+                    if (data.order.is_paid) {
                         await OrderHelper.log({ ...logData, action: "paid" })
                         this.socket.emit("orderPayment")
                     }
-                    this.socket.emit("order-status", { status: "placed", userId: data.user_id })
+                    this.socket.emit("order-status", { status: "placed", userId: data.order.user_id })
                     this.socket.emit("forceDC")
                     this.response(create, response)
                 }
@@ -118,32 +117,31 @@ class OrderController extends BaseController {
 
             if (currentOrder && !currentOrder.error) {
                 const result = await new Order().where({id: {value: req.params.id}}).update(data)
-                await OrderHelper.saveOrderItems(req.body.items, req.params.id, (data.status || currentOrder.status))
+                await OrderHelper.saveOrderItems(req.body.items, req.params.id, (data.order.status || currentOrder.status))
                 if (result && !result.error) {
                     const orderAddress = await OrderHelper.saveOrderAddress(data, req.params.id)
                     if (orderAddress && !orderAddress.error) {
-                        await OrderHelper.saveFees(req.params.id, data)
+                        await OrderHelper.saveFees(req.params.id, data.fees)
                         OrderHelper.logPayment({ req, currentOrder, socket: this.socket })
 
-                        if (currentOrder.status !== data.status) {
-                            await OrderHelper.log({ order_id: currentOrder.id, user_id: currentOrder.user_id, action: data.status })
-                            // this.socket.emit("order-status", { status: data.status, userId: currentOrder.user_id, orderIds: [ req.params.id ] })
+                        if (currentOrder.status !== data.order.status) {
+                            await OrderHelper.log({ order_id: currentOrder.id, user_id: currentOrder.user_id, action: data.order.status })
+                            // this.socket.emit("order-status", { status: data.order.status, userId: currentOrder.user_id, orderIds: [ req.params.id ] })
                             if (currentOrder.user_id) {
                                 const socketPayload = [{
                                     userId: currentOrder.user_id,
                                     payload: {
                                         orderIds: [ currentOrder.id ],
-                                        affectedStatuses: [ currentOrder.status, data.status ]
+                                        affectedStatuses: [ currentOrder.status, data.order.status ]
                                     }
                                 }]
                                 OrderSocket.updateUnseenOrder({ status: "unseen", data: socketPayload })
                             }
                             const orderEmailTemplate = require('../../email/templates/orders')
-                            
                             await new Emailer("noreply").send({
-                                to: data.delivery_address.email,
-                                subject: `Order #${ currentOrder.reference_number } ${ data.status }`,
-                                html: (siteDetails) => orderEmailTemplate({ order: data, type: data.status, siteDetails })
+                                to: data.address.email,
+                                subject: `Order #${ currentOrder.reference_number } ${ data.order.status }`,
+                                html: (siteDetails) => orderEmailTemplate({ order: { ...data, order: result.data }, type: data.order.status, siteDetails })
                             })
                         }
                         this.response(result, response)

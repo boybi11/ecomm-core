@@ -18,3 +18,14 @@ exports.decrypt = function (data) {
                     catch(err) {}
                     return decryptedData
                 }
+
+exports.checkout = function (string) {
+                    let data = {}
+
+                    if (string) {
+                        const unSuffixed    = string.slice(0, string.length - 3)
+                        try { data = JSON.parse(crypto.enc.Hex.parse(unSuffixed).toString(crypto.enc.Utf8)) } catch(err) {}
+                    }
+
+                    return data
+                }

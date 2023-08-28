@@ -14,7 +14,7 @@ class Settings extends Base {
                             "created_at": "datetime",
                             "updated_at": "datetime"
                         }
-
+        this.searchables = [ "name" ]
         this.appends = ["asset"]
     }
 

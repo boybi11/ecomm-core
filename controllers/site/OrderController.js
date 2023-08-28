@@ -8,7 +8,7 @@ const moment        = require('moment')
 const LogHelper         = require('../../helpers/LogHelper')
 // const OrderHelper       = require('../../helpers/OrderHelper')
 // const NotifHelper       = require('../../helpers/NotificationHelper')
-// const OrderSocket       = require('../../helpers/OrderSocketHelper')
+const OrderSocket       = require('../../helpers/OrderSocketHelper')
 // const OrderItemHelper   = require('../../helpers/OrderItemHelper')
 // const Emailer           = require('../../factories/Emailer')
 const BaseController    = require('../../core/BaseController')
@@ -78,22 +78,21 @@ class OrderController extends BaseController {
             order,
             items,
             fees,
-            address }       = req.body
+            address }       = req.body.checkout
         const placedOrder   = await new Order().create(order)
         const orderId       = placedOrder.data.id
-
-        await new Order()
-                .where({ id: { value: req.body.authCart.id }})
-                .update({ token: '' }) // update cart to empty token
         
         // update all cart items to newly placed order
         await Promise.all(items.map(async item => {
             return await new OrderItem()
-                                .where({ id: { value: item.id } })
+                                .where({
+                                    product_id: { value: item.product_id },
+                                    order_id: { value: req.body.authCart.id }
+                                })
                                 .update({ ...item, order_id: orderId })
         }))
         await new OrderFee().create(fees.map(fee => ({ ...fee, order_id: orderId }))) // insert order fees
-        await new OrderAddress().create([ address ].map(a => ({ ...a, order_id: orderId })))
+        await new OrderAddress().create({ ...address, order_id: orderId })
 
         await LogHelper.logOrderActivity({
                     order_id: orderId,
@@ -101,16 +100,15 @@ class OrderController extends BaseController {
                     action: "placed"
                 })
 
-        const cart = await new Order()
-                            .with([
-                                "items:product:(asset-children-uoms)",
-                                "delivery_address",
-                                "billing_address"
-                            ])
-                            .where({ id: { value: req.body.authCart.id }})
-                            .first()
-        delete cart.status
-        this.response(cart, response)
+        await new Order()
+                .where({ id: { value: req.body.authCart.id }})
+                .update({ token: '' })
+
+        await new Order()
+                .where({ id: { value: orderId }})
+                .update({ reference_number: +orderId + 100000 })
+        // OrderSocket.orderPalced()
+        this.response("Order placed", response)
     }
 
     cancelOrder(req, res) {

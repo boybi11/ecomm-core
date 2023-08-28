@@ -19,10 +19,10 @@ class Product extends Base {
     }
 
     asset               = () => this.hasOne('Asset', 'id', 'image')
-    category            = () => this.hasOne('Category', 'id', 'category_id')
-    brand               = () => this.hasOne('Brand', 'id', 'brand_id')
+    category            = () => this.hasOne('Category', 'id', 'category_id', { select: [ "id", "name", "slug" ] })
+    brand               = () => this.hasOne('Brand', 'id', 'brand_id', { select: [ "id", "name", "slug" ] })
     variants            = () => this.hasMany('VariantGroup', 'product_id', 'id')
-    children            = () => this.hasMany('Product', 'parent', 'id')
+    children            = () => this.hasMany('Product', 'parent', 'id', { select: tableFields })
     baseProduct         = () => this.hasOne('Product', 'id', 'parent')
     uoms                = () => this.hasMany('UnitOfMeasure', 'product_id', 'id')
     forTable            = () => this.select(tableFields)

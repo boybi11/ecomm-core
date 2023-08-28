@@ -28,7 +28,8 @@ exports.getJoinColumns = (model, data = {}) => {
     if (stock || ratings || discount) {
 
         if (stock) {
-            model.select(["SUM(inventory_histories.quantity * IF(action = 'restock', 1, -1)) as stock"])
+            const stockQry = "SUM(inventory_histories.quantity * IF(action = 'restock', 1, -1))"
+            model.select([`${ stockQry } as stock`, `IF (${ stockQry } OR products.track_inventory = 0, 0 , 1) as is_oos`])
                             .join("inventory_histories", "inventory_histories.product_id = products.id", "left")
         }
 
@@ -39,9 +40,10 @@ exports.getJoinColumns = (model, data = {}) => {
 
         if (discount) {
             const now            = moment().format()
-            const priceBase      = "IF (products.original_price > 0, products.original_price, products.price)"
+            const priceBase      = "IF (products.original_price > 0 && discounted_products.amount, products.original_price, products.price)"
             const percentage     = `((${ priceBase }) * (discounted_products.amount / 100))`
-            const activeDiscount = `IF(discounted_products.amount, (IF (amount_type = "fixed", discounted_products.amount, ${ percentage })), 0)`
+            const priceDiscount  = "IF (products.original_price > 0, (products.original_price - products.price), 0)"
+            const activeDiscount = `IF(discounted_products.amount, (IF (amount_type = "fixed", discounted_products.amount, ${ percentage })), ${ priceDiscount })`
             const publish_date   = `((discounted_products.publish_date <= "${ now }" AND (end_date >= "${ now }" OR end_date is NULL)) OR discounted_products.publish_date IS NULL)`
             
             model.select([`(${ priceBase } - ${ activeDiscount }) as active_price`, `${ activeDiscount } as active_discount`])

@@ -23,6 +23,7 @@ const cashinAPIs =          require('./cashin.apis')
 const notificationAPIs =    require('./notification.apis')
 const inventoryAPIs =       require('./inventory.apis')
 const importAPIs =          require('./import.apis')
+const paymentOptionAPIs =   require('./payment_option.apis')
 
 module.exports = [
     activityAPIs,
@@ -49,5 +50,6 @@ module.exports = [
     cashinAPIs,
     notificationAPIs,
     inventoryAPIs,
-    importAPIs
+    importAPIs,
+    paymentOptionAPIs
 ]

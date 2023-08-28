@@ -11,7 +11,7 @@ exports.relatedTo   = function (relatedTo, products) {
 exports.ids         = function (ids = [], products) {
                         if (ids.length) products.whereIn({ "products.id": ids })
                     }
-exports.categories  = function (categories, products) { if (categories) products = products.whereIn({ brand_id: categories }) }
+exports.categories  = function (categories, products) { if (categories) products = products.whereIn({ category_id: categories }) }
 exports.brands      = function (brands, products) { if (brands) products = products.whereIn({ brand_id: brands }) }
 exports.ratings     = async function (ratings, products) {
                         if (ratings) {
@@ -41,5 +41,14 @@ exports.price        = function (price, products) {
                             if (+price[1]) query += `${ query ? " AND " : '' }active_price <= ${ price[1] }`
                             
                             products.having(query)
+                        }
+                    }
+
+exports.tag        = function (tag, products) {
+                        if (tag) {
+                            products
+                                .join("tags", "tags.ref_type = 'products' && tags.ref_id = products.id", "left")
+                                .select([ "tags.name as tag_name", "ref_type" ])
+                                .having(`tag_name = '${ tag }'`)
                         }
                     }

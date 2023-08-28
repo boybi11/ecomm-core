@@ -1,5 +1,6 @@
-const socketClient = require('socket.io-client')
-const OrderItem = require('../../models/OrderItem')
+const socketClient   = require('socket.io-client')
+const OrderItem      = require('../../models/OrderItem')
+const Order          = require('../../models/Order')
 const BaseController = require('../../core/BaseController')
 
 class OrderItemController extends BaseController {
@@ -10,6 +11,39 @@ class OrderItemController extends BaseController {
         this.socket = socketClient(config.URL.base, {transports: [ 'websocket' ]})
         this.update = this.update.bind(this)
         this.delete = this.delete.bind(this)
+    }
+
+    get = async (req, response) => {
+        if (req.params.ref || req.authUser) {
+            const whereQuery = { status: { value: "cart" } }
+            
+            if (req.authUser)  whereQuery.user_id = { value: req.authUser.id }
+            else if (req.params.ref && req.params.ref !== 'undefined') whereQuery.reference_number = { value: req.params.ref }
+
+            const cart = await new Order()
+                                    .select([ "reference_number", "user_id" ])
+                                    .where(whereQuery)
+                                    .first()
+            if (cart) {
+                const result = await new OrderItem()
+                                    .where({ order_id: { value: cart.id }})
+                                    .with([ "product:asset" ])
+                                    .get()
+
+                this.response(result, response)
+            }
+            else this.sendError("Something went wrong")
+        }
+        else this.sendError("Missing request paramters", response)
+    }
+
+    findCheckoutItems = async (req, response) => {
+        const result = await new OrderItem()
+                                    .whereIn({ id: req.body.items })
+                                    .with([ "product:asset-?withJoin" ])
+                                    .get()
+
+        this.response(result, response)
     }
 
     store = async (req, response) => {

@@ -30,4 +30,4 @@ exports.fillables = {
 
 exports.appends     = [ "options", "active_promo", "is_published" ]
 exports.searchables = [ "name", "sku" ]
-exports.tableFields = [ "products.id", "parent", "name", "image", "sku", "price", "original_price", "products.publish_date", "selling_unit", "track_inventory", "with_variant", "options", "slug" ]
+exports.tableFields = [ "products.id", "parent", "products.name", "image", "sku", "price", "original_price", "products.publish_date", "selling_unit", "track_inventory", "with_variant", "options", "slug" ]

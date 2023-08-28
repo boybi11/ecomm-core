@@ -13,9 +13,7 @@ module.exports = function(apiRoutes) {
         BrandController,
         ProductRatingController,
         UserController,
-        OrderController,
         OrderItemController,
-        CartController,
         CustomerAddressController,
         WishlistController,
         PageController,
@@ -25,7 +23,6 @@ module.exports = function(apiRoutes) {
         LocationController,
         ShippingFeeController,
         AssetController,
-        OrderRefundRequestController,
         InquiryController
     } = require('../controllers/backoffice');
 
@@ -92,34 +89,6 @@ module.exports = function(apiRoutes) {
 
     //PROMO ROUTES
     apiRoutes.get('/promos', PromotionController.get);
-    
-    //CART
-    apiRoutes.post('/cart', StoreGateMiddleware.validateClientToken,StoreGateMiddleware.auth, CartController.store);
-    apiRoutes.get('/cart/:ref?', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, CartController.get);
-    apiRoutes.post('/cart/save-address/:token/:ref', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, CartMiddleware.retrieveCart, CartController.saveCartAddress);
-    apiRoutes.post('/update-fees/:order_id', StoreGateMiddleware.auth, CartController.updateCartFees);
-
-    //CART ITEM
-    apiRoutes.post('/add-to-cart', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, OrderItemController.store);
-    apiRoutes.patch('/add-to-cart', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, OrderItemController.update);
-    apiRoutes.patch('/cart-item/:id', StoreGateMiddleware.validateClientToken, OrderItemController.updateItemQty);
-    apiRoutes.delete('/remove-item-cart/:id', StoreGateMiddleware.auth, OrderItemController.delete);
-    
-    //CHECKOUT
-    apiRoutes.patch('/checkout/initiate/:ref', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, CartMiddleware.retrieveCart, CartController.initiateCheckout);
-
-    //ORDER ROUTES
-    apiRoutes.get('/orders', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, OrderController.get);
-    apiRoutes.get('/find-order/:ref', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, OrderController.find);
-    apiRoutes.post('/place-order/:token/:ref', StoreGateMiddleware.validateClientToken, StoreGateMiddleware.auth, CartMiddleware.retrieveCart, OrderMiddleware.processOrder, OrderController.placeOrder);
-    apiRoutes.patch('/orders/cancel/:ref', StoreGateMiddleware.auth, OrderController.cancelOrder);
-    apiRoutes.patch('/orders/receive/:ref', StoreGateMiddleware.auth, OrderController.receiveOrder);
-    apiRoutes.post('/orders/refund/request', StoreGateMiddleware.auth, OrderRefundRequestController.store);
-    apiRoutes.get('/order-history/unseen', AuthMiddleware.auth, OrderController.getAllUnseenHistory);
-    apiRoutes.patch('/order-history/set-seen', AuthMiddleware.auth, OrderController.setSeenHistory);
-
-    //PAGE ROUTES
-    apiRoutes.get('/page/:slug', StoreGateMiddleware.auth, PageController.find);
 
     //SHIPPING FEE
     apiRoutes.get('/shipping-zones/get-shipping-fees', StoreGateMiddleware.validateClientToken, ShippingFeeController.getShippingZoneFee);

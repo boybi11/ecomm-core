@@ -14,6 +14,8 @@ class CategoryController extends BaseController {
         categories = this.filter(categories, query)
         categories = this.sort(categories, query.sort)
 
+        if (query.list) categories = categories.list()
+
         const result = await categories
                         .with('children:>crumbs-children:>crumbs')
                         .get()

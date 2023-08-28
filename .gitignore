@@ -3,17 +3,18 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/savingchanges/gitignore
 
+
+
 uploads/assets/*
 uploads/redactor/*
 uploads/temp/*
-!uploads/assets/file.txt
-!uploads/redactor/file.txt
-!uploads/temp/index.txt
+!server/uploads/assets/file.txt
+!server/uploads/redactor/file.txt
+!server/uploads/temp/index.txt
 # Node artifact files
 node_modules/
 dist/
-build/
-
+pos/*
 .env
 
 # Compiled Java class files

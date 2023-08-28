@@ -37,27 +37,26 @@ exports.saveVariants = async (productId, variants = []) => {
     return true
 }
 
-exports.saveChildren = async (productId, children = []) => {
-    if (productId) {
-        const signatures = children.map(c => c.variant_signature)
+exports.saveChildren = async ({ productId, name }, children = []) => {
+    if (productId && children.length) {
+        const skus       = children.map(c => c.sku)
         let productModel = new Product().where({parent: {value: productId}})
 
-        if (signatures && signatures.length) productModel = productModel.exclude({ variant_signature: signatures })
+        if (skus && skus.length) productModel = productModel.exclude({ sku: skus })
         await productModel.delete([])
 
-        if (children && children.length) await Promise.all( children.map(child => updateProductChild(productId, child)) )
+        if (children && children.length) await Promise.all( children.map(async child => await updateProductChild({ productId, name }, child)) )
     }
 
     return true
 }
 
-const updateProductChild = async (parent, child) => {
-    child.parent = parent
-    
+const updateProductChild = async ({ productId, name }, child) => {
     await AssetHelper.upload(child.image)
-    child.images        = await AssetHelper.uploadGroup(child.images)
-    child.slug          = GeneralHelper.slugify(`${child.name} ${child.sku}`)
-    const childEntry    = await new Product().where({variant_signature: {value: child.variant_signature}}).first()
-    
-    await new Product().where({variant_signature: {value: child.variant_signature}})[childEntry ? "update" : "create"](child)
+    child.name          = `${ name } ${ child.options.map(option => `(${ option.value })` ).join(' ')}`
+    child.slug          = GeneralHelper.slugify(child.name)
+    child.parent        = productId
+    child.options       = child.options.map(option => `${ option.group }:${ option.value }` ).join('--')
+
+    return await new Product().where({sku: { value: child.sku }})[child.id ? "update" : "create"](child)
 }
