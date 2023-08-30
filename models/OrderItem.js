@@ -11,6 +11,7 @@ class OrderItem extends Base {
                             "promotion_id": "int",
                             "original_price": "decimal",
                             "price": "decimal",
+                            "discount": "decimal",
                             "quantity": "decimal",
                             "selling_unit": "string",
                             "uom_ratio": "int",
