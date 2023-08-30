@@ -53,7 +53,7 @@ class Category extends Base {
         return data
     }
 
-    list = this.select(["slug", "name"])
+    list = () => this.select(["slug", "name"])
 }
 
 module.exports = Category
